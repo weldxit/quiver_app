@@ -1,0 +1,19 @@
+npm install @react-navigation/native
+
+npx expo install react-native-screens react-native-safe-area-context
+
+npm install @react-navigation/bottom-tabs
+
+npm i react-native-paper (used for bottom tab icons)
+
+npm i react-native-responsive-dimensions
+
+npm i @react-navigation/stack
+
+npm i react-native-virtualized-view
+
+npm i react-native-webview 
+
+npm i react-native-gesture-handler
+
+npm i react-native-animatable
