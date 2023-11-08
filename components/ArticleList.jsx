@@ -9,6 +9,7 @@ import {
     Image,
     Dimensions,
     RefreshControl,
+    Modal
   } from "react-native";
   import React, {
     useCallback,
@@ -25,6 +26,7 @@ import {
   } from "react-native-responsive-dimensions";
   import { ScrollView } from "react-native-virtualized-view";
   import * as Animatable from "react-native-animatable";
+  import { ActivityIndicator, MD2Colors } from 'react-native-paper';
   import axios from "axios";
 
 //   import { useLoading } from "../Context/LoadContext";
@@ -37,20 +39,27 @@ import {
     const [data, setData] = useState([]);
     const [chunk, setChunk] = useState(10);
     const [shimmer, setShimmer] = useState(false);
-    // const { load, toggleLoad } = useLoading();
-    // console.log(load)
+    const [loading,setLoading] = useState(false)
     const getNews = async () => {
-      // console.log(Date.now(), 'start')
-      // setRefreshing(true)
+   
       await axios
         .get(`https://jsonplaceholder.typicode.com/posts`)
         .then((response) => {
           setData(response.data);
-          // console.log(response.data)
-          // console.log(Date.now(),'end')
+        
         });
-      setShimmer(false);
+        setLoading(false);
       // console.log('refreshing ended')
+    };
+    const getNews2 = async () => {
+      setLoading(true);
+      await axios
+        .get(`https://jsonplaceholder.typicode.com/posts`)
+        .then((response) => {
+          setData(response.data);
+        });
+        setLoading(false);
+
     };
     useEffect(() => {
       getNews();
@@ -58,18 +67,20 @@ import {
   
     const End = () => {
       // setChunk((prevChunk) => [...prevChunk, prevChunk.length + 10]);
+      // setLoading(!loading);
       setChunk(chunk + 10);
-      setShimmer(false);
+      // setLoading();
     };
     const tags = [
-      "#politics",
-      "#education",
-      "#state",
-      "#farming",
-      "#international",
-      "#business",
-      "#shreejagannath",
-      "#health",
+      // "ShreeJagannath",
+      "Politics",
+      "Business",
+      "Education",
+      "Farming",
+      "Health & lifestyle",
+      "State",
+      "National",
+      "International",
     ];
   
     const onRefresh = useCallback(() => {
@@ -80,17 +91,18 @@ import {
     }, []);
   
     const filterPress = useCallback(
-      async (item) => {
-        // console.log('rerender')
-        // console.log(item, "clicked");
+       (item) => {
+    
+        getNews2()
         setActiveItem(item);
       },
-      [setActiveItem]
+      [activeItem]
     );
   
     const renderArticle = useCallback((item) => {
-      // toggleLoad();
-       navigation.navigate("Singlearticle", { item });
+        
+       navigation.navigate("Singlearticle",{item});
+      
     }, []);
     // small component to be separated later
     const MemoizedFlatListFilter = React.memo(({ item }) => {
@@ -106,7 +118,7 @@ import {
           <Text style={styles.filtertag}>{item}</Text>
         </TouchableOpacity>
       );
-    },[]);
+    },[activeItem]);
   
     // to render latest today
     const MemoizedPopularItemToday = React.memo(({ item, index }) => {
@@ -121,7 +133,7 @@ import {
         >
           <TouchableOpacity
             // style={styles.cardContainer}
-            onPress={useCallback(() => renderArticle(item), [])}
+            onPress={useCallback(() => {setLoading(!loading),renderArticle()}, [])}
           >
             <View style={styles.cardWrapper}>
               <View style={styles.slug_cat_img_wrapper}>
@@ -169,6 +181,7 @@ import {
               />
             }
           >
+            {/* <ActivityIndicator animating={true} color={MD2Colors.red800} /> */}
             <View style={styles.latestArticlesContainer}>
               <View>
                 <FlatList
@@ -180,14 +193,14 @@ import {
                   )}
                 />
               </View>
-  
-              {!shimmer ? (
+                    
+              {!loading ? (
                 <FlatList
                   data={data.slice(0, chunk)}
                   maxToRenderPerBatch={10}
                   initialNumToRender={20}
                   onEndReached={() => {
-                    setShimmer(true);
+                    
                     End();
                   }}
                   onEndReachedThreshold={0.3}
@@ -211,13 +224,13 @@ import {
                   }}
                 >
                   <Image
-                    source={require("../assets/logo/loading.gif")}
+                    source={require("../assets/logo/qvr.gif")}
                     height={700}
                     width={300}
                     resizeMode="contain"
                   />
                 </View>
-              )}
+              )} 
             </View>
           </ScrollView>
     
