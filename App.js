@@ -1,97 +1,42 @@
-import { StatusBar } from "expo-status-bar";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Home from "./components/Home";
-import Youtube from "./components/Youtube";
-import Settings from "./components/Settings";
-import BrandHeader from "./components/BrandHeader";
-import { Icon } from "react-native-paper";
-import {
-  responsiveFontSize,
-  responsiveHeight,
-} from "react-native-responsive-dimensions";
+// App.js
 
-const BottomTab = createBottomTabNavigator();
+import React, { useEffect, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import Splash from './Splash';
+import Entry from './Entry';
+import Login from './Login';
 
-export default function App() {
+const Stack = createStackNavigator();
+
+const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Simulating asynchronous tasks such as data loading or authentication check
+    setTimeout(() => {
+      // Set isLoading to false after the splash screen duration
+      setIsLoading(false);
+      // Simulate user authentication check (replace with your actual logic)
+      const userIsLoggedIn = true; // Replace with your authentication logic
+      setIsLoggedIn(userIsLoggedIn);
+    }, 2000); // Adjust the duration of the splash screen
+  }, []);
+
   return (
-    <BrandHeader>
     <NavigationContainer>
-      <BottomTab.Navigator backBehavior="history">
-        <BottomTab.Screen
-          name="Article"
-          component={Home}
-          options={{
-            headerShown: false,
-            tabBarColor: "red",
-            tabBarIcon: ({ color }) => (
-              <Icon
-                source={"newspaper"}
-                color={color}
-                size={responsiveHeight(3.7)}
-              />
-            ),
-            tabBarLabelStyle: { fontSize: responsiveFontSize(1.4), fontWeight:'bold' },
-            // tabBarActiveBackgroundColor:'#f93734',
-            tabBarActiveTintColor:'red',
-            // tabBarInactiveBackgroundColor:'#ff514f',
-            tabBarInactiveTintColor:'darkgray'
-          }}
-        />
-        <BottomTab.Screen
-          name="Youtube"
-          component={Youtube}
-          options={{
-            headerShown: false,
-            tabBarColor: "red",
-            tabBarIcon: ({ color }) => (
-              <Icon
-                source={"youtube"}
-                color={color}
-                size={responsiveHeight(4.6)}
-              />
-            ),
-            tabBarLabelStyle: { fontSize: responsiveFontSize(1.4), fontWeight:'bold' },
-            // tabBarActiveBackgroundColor:'#f93734',
-            tabBarActiveTintColor:'red',
-            // tabBarInactiveBackgroundColor:'#ff514f',
-            tabBarInactiveTintColor:'darkgray'
-          }}
-        />
-        <BottomTab.Screen
-          name="Settings"
-          component={Settings}
-          options={{
-            headerShown: false,
-            tabBarColor: "red",
-            tabBarIcon: ({ color }) => (
-              <Icon
-                source={"account-settings"}
-                color={color}
-                size={responsiveHeight(4.5)}
-              />
-            ),
-            tabBarLabelStyle: { fontSize: responsiveFontSize(1.4), fontWeight:'bold' },
-            // tabBarActiveBackgroundColor:'#f93734',
-            tabBarActiveTintColor:'red',
-            // tabBarInactiveBackgroundColor:'#ff514f',
-            tabBarInactiveTintColor:'darkgray'
-          }}
-        />
-      </BottomTab.Navigator>
+      <Stack.Navigator>
+        {isLoading ? (
+          <Stack.Screen name="Splash" component={Splash} />
+        ) : isLoggedIn ? (
+          <Stack.Screen name="Home" component={Entry} />
+        ) : (
+          <Stack.Screen name="Login" component={Login} />
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
-    <StatusBar style="inverted" translucent={false} backgroundColor="red" />
-    </BrandHeader>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+export default App;
