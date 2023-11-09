@@ -28,59 +28,88 @@ import {
   import * as Animatable from "react-native-animatable";
   import { ActivityIndicator, MD2Colors } from 'react-native-paper';
   import axios from "axios";
+  import storage from '@react-native-firebase/storage'
 
 //   import { useLoading } from "../Context/LoadContext";
   const height = Dimensions.get("window").height;
+
   const DefaultHome = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
-    const [activeItem, setActiveItem] = useState("");
+    const [activeItem, setActiveItem] = useState(null);
     const [animatedItems, setAnimatedItems] = useState([]);
     const [delay, setDelay] = useState(0);
     const [data, setData] = useState([]);
     const [chunk, setChunk] = useState(10);
     const [shimmer, setShimmer] = useState(false);
     const [loading,setLoading] = useState(false)
-    const getNews = async () => {
-   
-      await axios
-        .get(`https://jsonplaceholder.typicode.com/posts`)
-        .then((response) => {
-          setData(response.data);
-        
-        });
-        setLoading(false);
-      // console.log('refreshing ended')
-    };
-    const getNews2 = async () => {
-      setLoading(true);
-      await axios
-        .get(`https://jsonplaceholder.typicode.com/posts`)
-        .then((response) => {
-          setData(response.data);
-        });
-        setLoading(false);
+    const limit = 10;
+    const [offset, setOffset] = useState(0)
+    const [offset1, setOffset1] = useState(0)
 
+    const getNews = useCallback(async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`https://server-for-quiver.onrender.com/todays_news?limit=${limit}&offset=${offset}`);
+        setData((prevData) => [...prevData, response.data]);
+        setOffset(offset+limit)
+      } catch (error) {
+        console.error('Error fetching news:', error);
+      } finally {
+        setLoading(false);
+      }
+    }, [offset]);
+
+    const getNewsByCategory = useCallback(async (item) => {
+      setLoading(true);
+      const limit = 10
+      try {
+        const response = await axios.get(`https://server-for-quiver.onrender.com/category/${item.id}?limit=${limit}&offset=${offset1}`);
+        setData((prevData) => [...prevData, response.data]);
+        setOffset1(offset1+limit)
+      } catch (error) {
+        console.error('Error fetching news by category:', error);
+      } finally {
+        setLoading(false);
+      }
+    }, [offset1]);
+
+    const End = () => {
+      if(activeItem !== null){
+          getNewsByCategory(activeItem)
+      }
+     else{
+      setOffset((prevOffset) => prevOffset + limit);
+     }
     };
+    const getImageUrl = async(image)=>{
+      try {
+        const reference = storage().ref(image)
+        const url = await reference.getDownloadURL();
+        return url;
+      } catch (error) {
+        console.error('Error retrieving image:', error);
+        return null;
+      }
+    }
     useEffect(() => {
       getNews();
-    }, []);
+    }, [getNews]);
+
+    useEffect(()=>{
+      getNews();
+    },[offset])
   
-    const End = () => {
-      // setChunk((prevChunk) => [...prevChunk, prevChunk.length + 10]);
-      // setLoading(!loading);
-      setChunk(chunk + 10);
-      // setLoading();
-    };
+   
     const tags = [
-      // "ShreeJagannath",
-      "Politics",
-      "Business",
-      "Education",
-      "Farming",
-      "Health & lifestyle",
-      "State",
-      "National",
-      "International",
+      {id:1,name:"Politics"},
+      {id:2,name:"Business"},
+      {id:3,name:"Education"},
+      {id:4,name:"Farming"},
+      {id:5,name:"Health & lifestyle"},
+      {id:6,name:"Sports"},
+      {id:7,name:"State"},
+      {id:8,name:"National"},
+      {id:9,name:"International"},
     ];
   
     const onRefresh = useCallback(() => {
@@ -92,9 +121,10 @@ import {
   
     const filterPress = useCallback(
        (item) => {
-    
-        getNews2()
-        setActiveItem(item);
+         setActiveItem(item);
+         setData([])
+        getNewsByCategory(activeItem)
+        
       },
       [activeItem]
     );
@@ -109,13 +139,13 @@ import {
       console.log("re-renderign-filter");
       return (
         <TouchableOpacity
-          onPress={() => filterPress(item)}
+          onPress={() => filterPress(item.id)}
           style={[
             styles.filtercontainer,
-            { backgroundColor: activeItem === item ? "lightblue" : "pink" },
+            { backgroundColor: activeItem === item.id ? "white" : "red", borderWidth: activeItem === item.id ? 1 : 0, borderColor: activeItem === item.id ? 'red' : 'none' }
           ]}
         >
-          <Text style={styles.filtertag}>{item}</Text>
+          <Text style={[styles.filtertag,{color : activeItem === item.id ? "red" : "white", fontSize:responsiveFontSize(2.5), fontWeight:'bold'}]}>{item.name}</Text>
         </TouchableOpacity>
       );
     },[activeItem]);
@@ -123,17 +153,17 @@ import {
     // to render latest today
     const MemoizedPopularItemToday = React.memo(({ item, index }) => {
       console.log("rendrerd-re-render-6");
-  
+      
       return (
         <Animatable.View
           style={styles.cardContent}
           animation="fadeIn"
           duration={1000}
-          delay={index * 90}
+          delay={index * 100}
         >
           <TouchableOpacity
             // style={styles.cardContainer}
-            onPress={useCallback(() => {setLoading(!loading),renderArticle()}, [])}
+            onPress={useCallback(() => {setLoading(true);renderArticle()}, [])}
           >
             <View style={styles.cardWrapper}>
               <View style={styles.slug_cat_img_wrapper}>
@@ -145,7 +175,7 @@ import {
                 <View style={styles.cat_img_wrapper}>
                   <Text style={styles.cat}>Politics</Text>
                   <Image
-                    source={require("../assets/thumbs/th7.jpg")}
+                    source={{uri:getImageUrl(item.image)}}
                     style={styles.image}
                   />
                 </View>
@@ -175,7 +205,6 @@ import {
               <RefreshControl
                 refreshing={false}
                 onRefresh={() => {
-                  setShimmer(true);
                   getNews();
                 }}
               />
@@ -196,20 +225,19 @@ import {
                     
               {!loading ? (
                 <FlatList
-                  data={data.slice(0, chunk)}
+                  data={data}
                   maxToRenderPerBatch={10}
                   initialNumToRender={20}
                   onEndReached={() => {
-                    
                     End();
                   }}
                   onEndReachedThreshold={0.3}
                   keyExtractor={(item, index) => index.toString()}
-                  ItemSeparatorComponent={() => {
-                    return (
-                      <View style={{ height: 1, backgroundColor: "gray" }} />
-                    );
-                  }}
+                  // ItemSeparatorComponent={() => {
+                  //   return (
+                  //     <View style={{ height: 1, backgroundColor: "gray" }} />
+                  //   );
+                  // }}
                   // ListEmptyComponent={<Text>hello</Text>}
                   renderItem={({ item, index }) => (
                     <MemoizedPopularItemToday item={item} index={index} />
@@ -327,6 +355,8 @@ import {
       marginVertical: responsiveHeight(3),
       // backgroundColor:'red',
       // borderWidth:1,
+      borderBottomWidth:3,
+      borderBottomColor:'#ff5151'
       // borderColor:'blue'
     },
     cardWrapper: {

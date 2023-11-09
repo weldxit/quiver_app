@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "243660059285",
+    "project_id": "thequiver-8e83d",
+    "storage_bucket": "thequiver-8e83d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243660059285:android:4b3a47dcc0326b4f41a19c",
+        "android_client_info": {
+          "package_name": "com.thequiver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJRpFUtBswZvEXzpgI5e0H5YAQI0xhhK4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
